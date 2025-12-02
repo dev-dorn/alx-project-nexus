@@ -52,8 +52,9 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    full_name = serializers.ReadOnlyField()
-    has_complete_profile = serializers.ReadOnlyField()
+    # Explicit types for schema generation
+    full_name = serializers.CharField(read_only=True)
+    has_complete_profile = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -121,4 +122,14 @@ class UserActivitySerializer(serializers.ModelSerializer):
         model = UserActivity
         fields = ('activity_type', 'description', 'ip_address', 'user_agent', 'created_at')
         read_only_fields = ('user', 'activity_type', 'description', 'ip_address', 'user_agent', 'created_at')
+
+
+# Small helper serializers for password reset endpoints so schema can pick up request bodies
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
 

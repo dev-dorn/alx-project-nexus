@@ -1,72 +1,35 @@
-import sys
+import os
 from .base import *
 
-# Hardcode development settings
-SECRET_KEY = 'django-insecure-development-secret-key'
+# Development settings
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
-# Additional apps for development
-INSTALLED_APPS += [
-    'django_extensions',
-
-]
-
-# Make sure MIDDLEWARE is defined by importing from base, then modify it
-MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
-
-# Debug toolbar configuration
-INTERNAL_IPS = [
-    '127.0.0.1',
-    'localhost',
-]
-
-# Email configuration for development
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Database configuration for development
+# Database configuration - FIXED
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ecommerce_dev',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT': '5432',
+        'NAME': 'ecommerce_db',           # ← DATABASE NAME (not user)
+        'USER': 'ecommerce_user',         # ← USER NAME
+        'PASSWORD': 'ecommerce_password', # ← PASSWORD
+        'HOST': 'db',                     # ← Docker service name
+        'PORT': '5432',                   # ← Port
     }
 }
 
-# Configure Django Debug Toolbar
-def show_toolbar(request):
-    return True
+# Add debug_toolbar only if not already present
+if 'debug_toolbar' not in INSTALLED_APPS:
+    INSTALLED_APPS.append('debug_toolbar')
+    INSTALLED_APPS.append('django_extensions')
 
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': show_toolbar,
-}
+if 'debug_toolbar.middleware.DebugToolbarMiddleware' not in MIDDLEWARE:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
-# CORS settings for development
+INTERNAL_IPS = ['127.0.0.1', 'localhost']
+
+# CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# Media files configuration for development
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Static files configuration for development
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Add backend URL for email verification
-BACKEND_URL = 'http://localhost:8000'
-
-if 'test' in sys.argv:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-
-    PASSWORD_HASHERS = [
-        'django.contrib.auth.hashers.MD5PasswordHasher',
-    ]
-
-ROOT_URLCONF = 'backend.urls'
+# Email for development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

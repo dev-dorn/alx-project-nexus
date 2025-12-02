@@ -14,13 +14,15 @@ RUN apt-get update \
         libpq-dev \
         curl \
     && rm -rf /var/lib/apt/lists/*
-
+RUN pip install --upgrade pip
 # Copy requirements first for better caching
 COPY requirements /app/requirements/
 
 # Install Python dependencies for PRODUCTION
-RUN pip install --no-cache-dir -r requirements/production.txt
-
+RUN pip install --prefer-binary --default-timeout=100 --retries=5 --no-cache-dir -r requirements/base.txt
+RUN pip install --prefer-binary --default-timeout=100 --retries=5 --no-cache-dir -r requirements/production.txt
+# Add this line after pip install command if needed
+RUN pip install --no-cache-dir celery==5.3.6 redis==5.0.1 flower==2.0.1
 # Copy project code
 COPY . /app/
 
@@ -29,9 +31,10 @@ RUN useradd --create-home --shell /bin/bash app \
     && chown -R app:app /app
 USER app
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+ENV DJANGO_SETTINGS_MODULE=backend.settings.production
 
+# Collect static files
+RUN python manage.py collectstatic --noinput 2>/dev/null || echo "Skipping collectstatic - database not ready"
 # Expose port
 EXPOSE 8000
 

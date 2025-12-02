@@ -66,6 +66,7 @@ class Order(models.Model):
     shipping_zip_code = models.CharField(max_length=20)
     
     # Billing Address (can be same as shipping)
+    billing_same_as_shipping = models.BooleanField(default=True)
     billing_first_name = models.CharField(max_length=100)
     billing_last_name = models.CharField(max_length=100)
     billing_address_line1 = models.CharField(max_length=255)
@@ -78,6 +79,8 @@ class Order(models.Model):
     # Payment Information
     payment_method = models.CharField(max_length=50, blank=True, null=True)
     transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    shipping_carrier = models.CharField(max_length=100, blank=True, null=True)
     
     # Notes
     customer_notes = models.TextField(blank=True, null=True)

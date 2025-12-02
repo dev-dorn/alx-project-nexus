@@ -102,8 +102,8 @@ class UserLoginView(APIView):
 
 class UserLogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-
     @extend_schema(
+        request=None,
         responses={200: OpenApiTypes.OBJECT}
     )
     def post(self, request):
@@ -165,7 +165,17 @@ class AddressListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Address.objects.filter(user=self.request.user)
+        # During schema generation swagger sets request.user to AnonymousUser which
+        # can break queryset evaluation. Guard against that so schema generation
+        # doesn't raise errors.
+        if getattr(self, "swagger_fake_view", False):
+            return Address.objects.none()
+
+        user = getattr(self.request, 'user', None)
+        if not user or not getattr(user, 'is_authenticated', False):
+            return Address.objects.none()
+
+        return Address.objects.filter(user=user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -176,7 +186,14 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return Address.objects.filter(user=self.request.user)
+        if getattr(self, "swagger_fake_view", False):
+            return Address.objects.none()
+
+        user = getattr(self.request, 'user', None)
+        if not user or not getattr(user, 'is_authenticated', False):
+            return Address.objects.none()
+
+        return Address.objects.filter(user=user)
 
 
 class UserActivityListView(generics.ListAPIView):
@@ -184,7 +201,14 @@ class UserActivityListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserActivity.objects.filter(user=self.request.user)
+        if getattr(self, "swagger_fake_view", False):
+            return UserActivity.objects.none()
+
+        user = getattr(self.request, 'user', None)
+        if not user or not getattr(user, 'is_authenticated', False):
+            return UserActivity.objects.none()
+
+        return UserActivity.objects.filter(user=user)
 
 @extend_schema(
     parameters=[OpenApiParameter("token", OpenApiTypes.STR)],
@@ -224,7 +248,13 @@ def verify_email(request, token):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def request_password_reset(request):
-    email = request.data.get('email')
+    # Keep compatibility with existing payload, but use explicit serializer for schema
+    from .serializers import PasswordResetRequestSerializer
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    email = serializer.validated_data.get('email')
 
     try:
         user = User.objects.get(email=email)
@@ -271,8 +301,13 @@ def request_password_reset(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def reset_password(request, token):
-    new_password = request.data.get('new_password')
-    confirm_password = request.data.get('confirm_password')
+    from .serializers import ResetPasswordSerializer
+    serializer = ResetPasswordSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    new_password = serializer.validated_data.get('new_password')
+    confirm_password = serializer.validated_data.get('confirm_password')
 
     if new_password != confirm_password:
         return Response({'error': 'Passwords do not match'}, status=400)
