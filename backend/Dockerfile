@@ -37,7 +37,10 @@ USER app
 ENV DJANGO_SETTINGS_MODULE=backend.settings.production
 
 # Collect static files (important for Whitenoise)
+#RUN python manage.py collectstatic --noinput
+ENV SECRET_KEY=dummy-build-key
 RUN python manage.py collectstatic --noinput
+
 
 # Expose port
 EXPOSE 8000
