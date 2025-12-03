@@ -28,6 +28,8 @@ RUN pip install --no-cache-dir celery==5.3.6 redis==5.0.1 flower==2.0.1
 
 # Copy project code
 COPY . /app/
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash app \
@@ -38,8 +40,6 @@ USER app
 ENV DJANGO_SETTINGS_MODULE=backend.settings.production
 
 # Copy entrypoint script
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
 
 # Expose port
 EXPOSE 8000
