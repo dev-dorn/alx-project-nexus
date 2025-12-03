@@ -15,7 +15,7 @@ if not SECRET_KEY:
     )
 
 ALLOWED_HOSTS = [
-    'alx-project-nexus-6-fvda.onrender.com',
+    '.onrender.com',
     'localhost',
 ]
 
