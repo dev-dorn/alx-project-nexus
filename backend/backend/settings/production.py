@@ -18,6 +18,7 @@ ALLOWED_HOSTS = [
     '.onrender.com',
     'localhost',
 ]
+CSRF_TRUSTED_ORIGINS = ["https://alx-project-nexus-76tz.onrender.com"]
 
 # Database from environment
 DATABASES = {
