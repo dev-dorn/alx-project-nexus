@@ -11,8 +11,10 @@ ROOT_URLCONF = 'backend.urls'
 
 # Core settings
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
+# Treat empty SECRET_KEY env vars as unset so Django falls back to a
+# safe development default. This prevents an empty string from causing
+# ImproperlyConfigured during deploy when an env var exists but is empty.
+SECRET_KEY = os.environ.get('SECRET_KEY') or (
     'django-insecure-development-secret-key-change-in-production'
 )
 
@@ -203,14 +205,24 @@ TEMPLATES = [
     },
 ]
 
-# Database
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=not DEBUG,
-    )
-}
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
+    }
+else:
+    # Fallback to SQLite in dev if DATABASE_URL is not set
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Static files
 STATIC_URL = '/static/'

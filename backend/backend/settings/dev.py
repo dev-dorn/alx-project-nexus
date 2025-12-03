@@ -33,3 +33,4 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Email for development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+BACKEND_URL = 'http://localhost:8000'

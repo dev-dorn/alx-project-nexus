@@ -99,4 +99,3 @@ jobs:
       run: |
         echo "✅ Deployment complete!"
         echo "Backend image: ${{ secrets.DOCKERHUB_USERNAME }}/project-nexus-backend"
-        echo "Frontend image: ${{ secrets.DOCKERHUB_USERNAME }}/project-nexus-frontend"

@@ -2,9 +2,17 @@ from .base import *
 import dj_database_url
 import os
 
+# Import the ImproperlyConfigured exception
+from django.core.exceptions import ImproperlyConfigured
+
 # Production settings
 DEBUG = False
 SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "The SECRET_KEY environment variable is missing or empty. "
+        "Set SECRET_KEY in your Render/hosting dashboard (do NOT commit it to source)."
+    )
 
 ALLOWED_HOSTS = [
     'yourdomain.com',
