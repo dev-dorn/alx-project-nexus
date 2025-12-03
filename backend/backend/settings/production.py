@@ -15,7 +15,7 @@ if not SECRET_KEY:
     )
 
 ALLOWED_HOSTS = [
-    'yourdomain.com',
+    '.onrender.com',
     'localhost',
 ]
 
