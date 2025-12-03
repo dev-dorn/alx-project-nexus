@@ -34,16 +34,15 @@ RUN useradd --create-home --shell /bin/bash app \
     && chown -R app:app /app
 USER app
 
+# Django settings
 ENV DJANGO_SETTINGS_MODULE=backend.settings.production
 
-# Collect static files (important for Whitenoise)
-#RUN python manage.py collectstatic --noinput
-ENV SECRET_KEY=dummy-build-key
-RUN python manage.py collectstatic --noinput
-
+# Copy entrypoint script
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
 
 # Expose port
 EXPOSE 8000
 
-# PRODUCTION command (not development runserver)
-CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Use entrypoint script to handle migrations, collectstatic, then start Gunicorn
+CMD ["/app/entrypoint.sh"]
